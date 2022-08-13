@@ -1,14 +1,12 @@
-
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qreasy/bloc/qrcode_bloc.dart';
+import 'package:qreasy/model/bookmark_model.dart';
 import 'package:qreasy/view/qrcode_detail_view.dart';
-import 'package:qreasy/view/qrcode_scanned_view.dart';
+import 'package:qreasy/widgets/my_app_bar.dart';
 
-class QRCodeScannerView extends StatefulWidget{
-
+class QRCodeScannerView extends StatefulWidget {
   const QRCodeScannerView({Key? key}) : super(key: key);
 
   @override
@@ -16,7 +14,6 @@ class QRCodeScannerView extends StatefulWidget{
 }
 
 class _QRScannerViewState extends State<QRCodeScannerView> {
-
   final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
   QRViewController? _controller;
   final QRCodeBloc _bloc = QRCodeBloc();
@@ -24,6 +21,9 @@ class _QRScannerViewState extends State<QRCodeScannerView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: const MyAppBar(
+        title: '',
+      ),
       body: Stack(
         alignment: Alignment.center,
         children: <Widget>[
@@ -31,6 +31,10 @@ class _QRScannerViewState extends State<QRCodeScannerView> {
             key: _qrKey,
             onQRViewCreated: _onQRViewCreated,
           ),
+          Image.asset(
+            "assets/images/scan.png",
+            width: 300,
+          )
         ],
       ),
     );
@@ -40,20 +44,23 @@ class _QRScannerViewState extends State<QRCodeScannerView> {
     _controller = controller;
     controller.scannedDataStream.listen((scanData) {
       controller.pauseCamera();
-      if(scanData.code != null){
-        _bloc.saveNotificationData(data: scanData.code!);
+      if (scanData.code != null) {
+        controller.stopCamera();
+        _bloc.saveQrCode(bookmark: Bookmark(value: scanData.code!, desc: ""));
         goToSuccessPage(scanData.code!);
       }
     });
   }
 
-  goToSuccessPage(String data){
+  goToSuccessPage(String data) {
     Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => QRCodeScannedView(
-              qrData: data,
-            )));
+      context,
+      MaterialPageRoute(
+        builder: (context) => QRCodeDetailView(
+          bookmark: Bookmark(value: data, desc: ""),
+        ),
+      ),
+    );
   }
 
   @override
@@ -61,5 +68,4 @@ class _QRScannerViewState extends State<QRCodeScannerView> {
     super.dispose();
     _controller?.dispose();
   }
-
 }
