@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:qreasy/bloc/qrcode_bloc.dart';
@@ -43,11 +44,18 @@ class _QRScannerViewState extends State<QRCodeScannerView> {
   void _onQRViewCreated(QRViewController controller) {
     _controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      controller.pauseCamera();
-      if (scanData.code != null) {
-        controller.stopCamera();
-        _bloc.saveQrCode(bookmark: Bookmark(value: scanData.code!, desc: ""));
-        goToSuccessPage(scanData.code!);
+      try {
+        controller.pauseCamera();
+        if (scanData.code != null) {
+          controller.stopCamera();
+          _bloc.saveQrCode(bookmark: Bookmark(value: scanData.code!, desc: ""));
+          goToSuccessPage(scanData.code!);
+        }
+      } catch (e, stack) {
+        if (kDebugMode) {
+          print(e.toString());
+          print(stack);
+        }
       }
     });
   }
